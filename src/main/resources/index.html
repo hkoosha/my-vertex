@@ -1,0 +1,65 @@
+<html>
+
+<head>
+    <style>
+        * {
+            font-family: "Courier New", Courier, monospace;
+        }
+
+    </style>
+</head>
+
+<body>
+
+Loop:
+<div id="loop"></div>
+<br>
+Average:
+<div id="avg"></div>
+<br>
+Sensors:
+<div id="main"></div>
+
+<script language="JavaScript">
+    const sse = new EventSource("/sse");
+
+    const main = document.getElementById("main");
+    const avg = document.getElementById("avg");
+    const loop = document.getElementById("loop");
+
+    let i = 0;
+
+    const handleAverage = data => {
+        avg.innerText = `${data.average.toFixed(2)}`
+    };
+
+    const handleUpdate = data => {
+        let div = document.getElementById(data.id);
+        if (div === null) {
+            div = document.createElement("div")
+            div.setAttribute("id", data.id)
+            main.appendChild(div)
+        }
+        div.innerHTML = `<em>${data.id}</em> :: ${data.temperature.toFixed(2)}`;
+    }
+
+    sse.addEventListener("update", evt => {
+        i++;
+        loop.innerHTML = `<strong>${i}</strong>`;
+
+        const data = JSON.parse(evt.data)
+        console.log(data);
+
+        if(data.id)
+            handleUpdate(data);
+        else
+            handleAverage(data);
+    });
+
+    sse.addEventListener("average", );
+
+
+</script>
+</body>
+
+</html>
