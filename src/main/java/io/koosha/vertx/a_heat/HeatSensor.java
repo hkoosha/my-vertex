@@ -1,4 +1,4 @@
-package io.koosha.vertx.heat;
+package io.koosha.vertx.a_heat;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.json.JsonObject;
@@ -27,8 +27,10 @@ public final class HeatSensor extends AbstractVerticle {
             : -this.random.nextGaussian();
         this.temperature += delta / 10.0D;
 
-        final JsonObject payload = new JsonObject().put("id", this.id).put("temperature", this.temperature);
-        this.vertx.eventBus().publish("sensor.updates", payload);
+        final JsonObject payload = new JsonObject()
+            .put(Config.FIELD__ID, this.id)
+            .put(Config.FIELD__TEMPERATURE, this.temperature);
+        this.vertx.eventBus().publish(Config.ENDPOINT__SENSOR_UPDATES, payload);
 
         this.scheduleNextUpdate();
     }

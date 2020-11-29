@@ -1,4 +1,4 @@
-package io.koosha.vertx.heat;
+package io.koosha.vertx.a_heat;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.Message;
@@ -12,15 +12,12 @@ public final class SensorData extends AbstractVerticle {
 
     private final Map<String, Double> sensorLastValue = new HashMap<>();
 
-    public SensorData() {
-    }
-
     public void start() {
-        this.vertx.eventBus().consumer("sensor.updates", this::onUpdate);
-        this.vertx.eventBus().consumer("sensor.average", this::onAverage);
+        this.vertx.eventBus().consumer(Config.ENDPOINT__SENSOR_UPDATES, this::onUpdate);
+        this.vertx.eventBus().consumer(Config.ENDPOINT__SENSOR_AVERAGE, this::onAverage);
     }
 
-    private void onAverage(Message<JsonObject> event) {
+    private void onAverage(final Message<JsonObject> event) {
         final double average = this.sensorLastValue
             .values()
             .stream()
@@ -29,7 +26,7 @@ public final class SensorData extends AbstractVerticle {
         event.reply(response);
     }
 
-    private void onUpdate(Message<JsonObject> event) {
+    private void onUpdate(final Message<JsonObject> event) {
         final String id = event.body().getString(Config.FIELD__ID);
         final double temperature = event.body().getDouble(Config.FIELD__TEMPERATURE);
         this.sensorLastValue.put(id, temperature);

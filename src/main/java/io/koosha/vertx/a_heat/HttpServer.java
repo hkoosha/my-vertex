@@ -1,4 +1,4 @@
-package io.koosha.vertx.heat;
+package io.koosha.vertx.a_heat;
 
 import io.koosha.vertx.Util;
 import io.vertx.core.AbstractVerticle;
@@ -25,9 +25,9 @@ public final class HttpServer extends AbstractVerticle {
 
         this.vertx.createHttpServer()
                   .requestHandler(this::handler)
-                  .listen(8080)
+                  .listen(Config.PORT)
                   .onSuccess(event -> {
-                      log.info("started server on :8080");
+                      log.info("started server on :{}", Config.PORT);
                       startPromise.complete();
                   })
                   .onFailure(cause -> {
@@ -69,10 +69,9 @@ public final class HttpServer extends AbstractVerticle {
         ticks.handler(event -> this.vertx
             .eventBus()
             .request(Config.ENDPOINT__SENSOR_AVERAGE, "", reply -> {
-                if (reply.succeeded()) {
-                    req.response().write("event: update\n");
-                    req.response().write("data: " + ((JsonObject) reply.result().body()).encode() + "\n\n");
-                }
+                if (reply.succeeded())
+                    req.response().write("event: update\ndata: " + ((JsonObject) reply.result().body()).encode() + "\n\n")
+                       .onFailure(failure -> log.warn("failed to write event to client at {}", req.remoteAddress()));
             }));
 
         req.response().endHandler(event -> {
