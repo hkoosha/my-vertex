@@ -2,7 +2,6 @@ package io.koosha.vertx.a_heat;
 
 public final class Config {
 
-
     private Config() {
         throw new UnsupportedOperationException("can not instantiate utility class");
     }

@@ -1,5 +1,6 @@
 package io.koosha.vertx.a_heat;
 
+import io.koosha.vertx.Util;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
@@ -22,7 +23,7 @@ public final class SensorData extends AbstractVerticle {
             .values()
             .stream()
             .collect(Collectors.averagingDouble(Double::doubleValue));
-        final JsonObject response = new JsonObject().put(Config.FIELD__AVERAGE, average);
+        final JsonObject response = Util.obj(Config.FIELD__AVERAGE, average);
         event.reply(response);
     }
 

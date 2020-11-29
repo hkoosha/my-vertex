@@ -55,8 +55,8 @@ public final class HttpServer extends AbstractVerticle {
 
     private void sse(final HttpServerRequest req) {
         req.response()
-           .putHeader("Content-Type", "text/event-stream")
-           .putHeader("Cache-Control", "no-cache")
+           .putHeader(Util.HEADER__CONTENT_TYPE, Util.HEADER__CONTENT_TYPE__EVENT_STREAM)
+           .putHeader(Util.HEADER__CACHE_CONTROL, Util.HEADER__CACHE_CONTROL__NO_CACHE)
            .setChunked(true);
 
         final MessageConsumer<JsonObject> consumer = this.vertx

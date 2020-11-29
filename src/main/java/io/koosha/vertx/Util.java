@@ -1,6 +1,8 @@
 package io.koosha.vertx;
 
 import io.vertx.core.DeploymentOptions;
+import io.vertx.core.Vertx;
+import io.vertx.core.file.OpenOptions;
 import io.vertx.core.json.JsonObject;
 
 import java.io.BufferedReader;
@@ -14,6 +16,13 @@ public final class Util {
     private Util() {
         throw new UnsupportedOperationException("can not instantiate utility class");
     }
+
+    public static final String HEADER__CONTENT_TYPE = "Content-Type";
+    public static final String HEADER__CONTENT_TYPE__EVENT_STREAM = "text/event-stream";
+    public static final String HEADER__CONTENT_TYPE__AUDIO_MPEG = "audio/mpeg";
+
+    public static final String HEADER__CACHE_CONTROL = "Cache-Control";
+    public static final String HEADER__CACHE_CONTROL__NO_CACHE = "no-cache";
 
     public static String readResource(final String name) throws IOException {
         //noinspection ConstantConditions
@@ -32,7 +41,21 @@ public final class Util {
     }
 
     public static DeploymentOptions configed(final String key, final Object value) {
-        return new DeploymentOptions().setConfig(new JsonObject().put(key, value));
+        return new DeploymentOptions().setConfig(obj(key, value));
+    }
+
+    public static JsonObject obj(final String key, final Object value) {
+        return new JsonObject().put(key, value);
+    }
+
+    public static OpenOptions openRead() {
+        return new OpenOptions().setRead(true);
+    }
+
+    public static void deploy(final Class<?>... verticles) {
+        final Vertx vertx = Vertx.vertx();
+        for (final Class<?> verticle : verticles)
+            vertx.deployVerticle(verticle.getName());
     }
 
 }
