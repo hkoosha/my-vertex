@@ -7,7 +7,8 @@ public final class Config {
         throw new UnsupportedOperationException("can not instantiate utility class");
     }
 
-    public static final int PORT = 8080;
+    public static final String CFG__PORT = "port";
+    public static final int DEFAULT_PORT = 8080;
 
     public static final String ENDPOINT__SENSOR_UPDATES = "sensor.updates";
     public static final String ENDPOINT__SENSOR_AVERAGE = "sensor.average";

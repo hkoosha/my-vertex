@@ -23,11 +23,13 @@ public final class HttpServer extends AbstractVerticle {
     public void start(final Promise<Void> startPromise) throws IOException {
         this.indexHtml = Util.readResource(RESOURCE);
 
+        final int port = config().getInteger(Config.CFG__PORT, Config.DEFAULT_PORT);
+
         this.vertx.createHttpServer()
                   .requestHandler(this::handler)
-                  .listen(Config.PORT)
+                  .listen(port)
                   .onSuccess(event -> {
-                      log.info("started server on :{}", Config.PORT);
+                      log.info("started server on :{}", port);
                       startPromise.complete();
                   })
                   .onFailure(cause -> {
