@@ -1,5 +1,8 @@
 package io.koosha.vertx;
 
+import io.vertx.core.DeploymentOptions;
+import io.vertx.core.json.JsonObject;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,6 +25,14 @@ public final class Util {
         catch (NullPointerException npe) {
             throw new IOException("no such resource: " + name);
         }
+    }
+
+    public static DeploymentOptions instances(final int count) {
+        return new DeploymentOptions().setInstances(count);
+    }
+
+    public static DeploymentOptions configed(final String key, final Object value) {
+        return new DeploymentOptions().setConfig(new JsonObject().put(key, value));
     }
 
 }

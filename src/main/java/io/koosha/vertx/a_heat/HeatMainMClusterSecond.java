@@ -1,9 +1,8 @@
 package io.koosha.vertx.a_heat;
 
-import io.vertx.core.DeploymentOptions;
+import io.koosha.vertx.Util;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
-import io.vertx.core.json.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,12 +21,11 @@ public final class HeatMainMClusterSecond {
 
     private static void deploy(final Vertx vertx) {
         log.info("starting second instance");
-        vertx.deployVerticle(HeatSensor.class.getName(), new DeploymentOptions().setInstances(4));
+        vertx.deployVerticle(HeatSensor.class.getName(), Util.instances(4));
         vertx.deployVerticle(SensorData.class.getName());
         vertx.deployVerticle(Listener.class.getName());
-        vertx.deployVerticle(HttpServer.class.getName(), new DeploymentOptions().setConfig(
-            new JsonObject().put(Config.CFG__PORT, Config.DEFAULT_PORT + 1)
-        ));
+        vertx.deployVerticle(HttpServer.class.getName(),
+            Util.configed(Config.CFG__PORT, Config.DEFAULT_PORT + 1));
     }
 
 }
