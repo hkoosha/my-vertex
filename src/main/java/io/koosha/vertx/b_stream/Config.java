@@ -2,6 +2,7 @@ package io.koosha.vertx.b_stream;
 
 public final class Config {
 
+
     private Config() {
         throw new UnsupportedOperationException("can not instantiate utility class");
     }
@@ -18,6 +19,7 @@ public final class Config {
     public static final String ENDPOINT__PAUSE = "jukebox.pause";
 
     public static final String PARAM__FILE_NAME = "file";
+    public static final String PARAM__FILES = "files";
 
     public static final String DIR = "/a";
 

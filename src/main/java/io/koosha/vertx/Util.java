@@ -3,12 +3,14 @@ package io.koosha.vertx;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.file.OpenOptions;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public final class Util {
@@ -24,6 +26,7 @@ public final class Util {
     public static final String HEADER__CACHE_CONTROL = "Cache-Control";
     public static final String HEADER__CACHE_CONTROL__NO_CACHE = "no-cache";
 
+
     public static String readResource(final String name) throws IOException {
         //noinspection ConstantConditions
         try (final InputStream is = Util.class.getClassLoader().getResourceAsStream(name);
@@ -36,6 +39,7 @@ public final class Util {
         }
     }
 
+
     public static DeploymentOptions instances(final int count) {
         return new DeploymentOptions().setInstances(count);
     }
@@ -44,13 +48,20 @@ public final class Util {
         return new DeploymentOptions().setConfig(obj(key, value));
     }
 
+
     public static JsonObject obj(final String key, final Object value) {
         return new JsonObject().put(key, value);
     }
 
-    public static OpenOptions openRead() {
+    public static JsonArray arr(final List<?> values) {
+        return new JsonArray(values);
+    }
+
+
+    public static OpenOptions forRead() {
         return new OpenOptions().setRead(true);
     }
+
 
     public static void deploy(final Class<?>... verticles) {
         final Vertx vertx = Vertx.vertx();

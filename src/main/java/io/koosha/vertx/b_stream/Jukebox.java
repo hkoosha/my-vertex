@@ -7,7 +7,6 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.file.AsyncFile;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,10 +44,11 @@ public final class Jukebox extends AbstractVerticle {
              .onFailure(event -> log.error("http server failed to start", event.getCause()))
              .onSuccess(event -> log.info("http server started on: {}", Config.PORT));
 
-        vertx.setPeriodic(Config.DELAY, this::streamCheck);
+        vertx.setPeriodic(Config.DELAY, this::tick);
     }
 
-    private void streamCheck(final long timerId) {
+
+    private void tick(final long timerId) {
         if (this.state == State.PAUSED)
             return;
 
@@ -65,35 +65,36 @@ public final class Jukebox extends AbstractVerticle {
             if (ar.failed()) {
                 log.error("read failed", ar.cause());
                 this.closeCurrentFile();
+                return;
             }
-            else {
-                this.processBuffer(ar.result());
-            }
+
+            final Buffer buffer = ar.result();
+            this.positionInFile += buffer.length();
+            if (buffer.length() == 0)
+                this.closeCurrentFile();
+            else
+                for (final HttpServerResponse streamer : this.streamers)
+                    if (!streamer.writeQueueFull())
+                        streamer.write(buffer.copy());
         });
     }
 
+
     private void openNextFile() {
-        this.currentFile = vertx.fileSystem().openBlocking(
-            Paths.get(Config.DIR, this.playlist.poll()).toString(), Util.openRead());
+        final String file = this.playlist.poll();
+        final String path = Paths.get(Config.DIR, file).toString();
+        log.info("opening file={}", path);
+
+        this.currentFile = vertx.fileSystem().openBlocking(path, Util.forRead());
         this.positionInFile = 0;
     }
 
     private void closeCurrentFile() {
-        this.positionInFile = 0;
-        this.currentFile.close()
-                        .onFailure(event -> log.error("closing file failed", event.getCause()));
+        this.currentFile.close().onFailure(event -> log.error("closing file failed", event.getCause()));
         this.currentFile = null;
+        this.positionInFile = 0;
     }
 
-    private void processBuffer(final Buffer buffer) {
-        this.positionInFile += buffer.length();
-        if (buffer.length() == 0)
-            this.closeCurrentFile();
-        else
-            for (final HttpServerResponse streamer : this.streamers)
-                if (!streamer.writeQueueFull())
-                    streamer.write(buffer.copy());
-    }
 
     private void httpHandler(final HttpServerRequest req) {
         log.info("req for path: {}", req.path());
@@ -130,26 +131,29 @@ public final class Jukebox extends AbstractVerticle {
                  log.error("error checking if exists, file={}", file, event.getCause());
                  req.response().setStatusCode(500).end();
              })
-             .onSuccess(event ->
-                 vertx.fileSystem().open(file.toString(), Util.openRead(), ar -> {
+             .onSuccess(exists -> {
+                 if (!exists) {
+                     log.warn("requested file does not exist: {}", file);
+                     req.response().setStatusCode(404).end();
+                     return;
+                 }
+
+                 vertx.fileSystem().open(file.toString(), Util.forRead(), ar -> {
                      if (ar.failed()) {
                          log.error("error opening, file={}", file, ar.cause());
                          req.response().setStatusCode(500).end();
+                         return;
                      }
-                     else {
-                         this.downloadFile(ar.result(), req);
-                     }
-                 }));
-    }
 
-    private void downloadFile(final AsyncFile file,
-                              final HttpServerRequest req) {
-        log.info("streaming to={}, file={}", req.remoteAddress(), file);
-        req.response()
-           .setStatusCode(200)
-           .putHeader(Util.HEADER__CONTENT_TYPE, Util.HEADER__CONTENT_TYPE__AUDIO_MPEG)
-           .setChunked(true);
-        file.pipeTo(req.response());
+                     final AsyncFile fileToDownload = ar.result();
+                     log.info("streaming to={}, file={}", req.remoteAddress(), fileToDownload);
+                     req.response()
+                        .setStatusCode(200)
+                        .putHeader(Util.HEADER__CONTENT_TYPE, Util.HEADER__CONTENT_TYPE__AUDIO_MPEG)
+                        .setChunked(true);
+                     fileToDownload.pipeTo(req.response());
+                 });
+             });
     }
 
     private void openStream(final HttpServerRequest req) {
@@ -186,6 +190,7 @@ public final class Jukebox extends AbstractVerticle {
         playlist.offer(file);
     }
 
+
     private void play(final Message<?> message) {
         log.info("play request");
         this.state = State.PLAYING;
@@ -195,6 +200,7 @@ public final class Jukebox extends AbstractVerticle {
         log.info("pause request");
         this.state = State.PAUSED;
     }
+
 
     private void list(final Message<?> req) {
         log.info("list request, dir={}", Config.DIR);
@@ -209,9 +215,11 @@ public final class Jukebox extends AbstractVerticle {
                                              .map(File::new)
                                              .map(File::getName)
                                              .collect(Collectors.toList());
+
                 if (files.isEmpty())
-                    log.warn("no mp3 file");
-                final JsonObject json = Util.obj("files", new JsonArray(files));
+                    log.warn("no file");
+
+                final JsonObject json = Util.obj(Config.PARAM__FILES, Util.arr(files));
                 req.reply(json);
             }
         });
