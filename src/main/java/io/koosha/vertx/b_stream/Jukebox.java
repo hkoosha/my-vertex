@@ -2,6 +2,7 @@ package io.koosha.vertx.b_stream;
 
 import io.koosha.vertx.Util;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.file.AsyncFile;
@@ -32,7 +33,7 @@ public final class Jukebox extends AbstractVerticle {
     private int positionInFile = 0;
 
     @Override
-    public void start() {
+    public void start(final Promise<Void> startPromise) {
         vertx.eventBus().consumer(Config.ENDPOINT__LIST, this::list);
         vertx.eventBus().consumer(Config.ENDPOINT__PAUSE, this::pause);
         vertx.eventBus().consumer(Config.ENDPOINT__PLAY, this::play);
@@ -41,8 +42,14 @@ public final class Jukebox extends AbstractVerticle {
         vertx.createHttpServer()
              .requestHandler(this::httpHandler)
              .listen(Config.PORT)
-             .onFailure(event -> log.error("http server failed to start", event.getCause()))
-             .onSuccess(event -> log.info("http server started on: {}", Config.PORT));
+             .onFailure(event -> {
+                 log.error("http server failed to start", event.getCause());
+                 startPromise.fail(event.getCause());
+             })
+             .onSuccess(event -> {
+                 log.info("http server started on: {}", Config.PORT);
+                 startPromise.complete();
+             });
 
         vertx.setPeriodic(Config.DELAY, this::tick);
     }

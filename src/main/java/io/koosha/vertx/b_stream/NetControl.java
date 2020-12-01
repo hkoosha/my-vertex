@@ -2,6 +2,7 @@ package io.koosha.vertx.b_stream;
 
 import io.koosha.vertx.Util;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.NetSocket;
 import io.vertx.core.parsetools.RecordParser;
@@ -16,12 +17,18 @@ public final class NetControl extends AbstractVerticle {
     private static final Logger log = LoggerFactory.getLogger(NetControl.class);
 
     @Override
-    public void start() {
+    public void start(final Promise<Void> startPromise) {
         vertx.createNetServer()
              .connectHandler(this::handler)
              .listen(Config.NET_CONTROL_PORT)
-             .onFailure(event -> log.error("failed to start NetControl", event.getCause()))
-             .onSuccess(event -> log.info("NetControl started on {}", Config.NET_CONTROL_PORT));
+             .onFailure(event -> {
+                 log.error("failed to start NetControl", event.getCause());
+                 startPromise.fail(event.getCause());
+             })
+             .onSuccess(event -> {
+                 log.info("NetControl started on {}", Config.NET_CONTROL_PORT);
+                 startPromise.complete();
+             });
     }
 
     private void handler(final NetSocket socket) {

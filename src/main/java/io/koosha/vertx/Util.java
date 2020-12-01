@@ -10,10 +10,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public final class Util {
+
 
     private Util() {
         throw new UnsupportedOperationException("can not instantiate utility class");
@@ -22,6 +24,7 @@ public final class Util {
     public static final String HEADER__CONTENT_TYPE = "Content-Type";
     public static final String HEADER__CONTENT_TYPE__EVENT_STREAM = "text/event-stream";
     public static final String HEADER__CONTENT_TYPE__AUDIO_MPEG = "audio/mpeg";
+    public static final String HEADER__CONTENT_TYPE__JSON = "application/json";
 
     public static final String HEADER__CACHE_CONTROL = "Cache-Control";
     public static final String HEADER__CACHE_CONTROL__NO_CACHE = "no-cache";
@@ -57,16 +60,23 @@ public final class Util {
         return new JsonArray(values);
     }
 
+    public static JsonArray arrOf(final Object... values) {
+        return new JsonArray(Arrays.asList(values));
+    }
+
 
     public static OpenOptions forRead() {
         return new OpenOptions().setRead(true);
     }
 
 
-    public static void deploy(final Class<?>... verticles) {
+    public static Vertx deploy(final Class<?>... verticles) {
         final Vertx vertx = Vertx.vertx();
+
         for (final Class<?> verticle : verticles)
             vertx.deployVerticle(verticle.getName());
+
+        return vertx;
     }
 
 }
