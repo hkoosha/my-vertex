@@ -49,7 +49,7 @@ public final class HttpServer extends AbstractVerticle {
                 break;
 
             default:
-                req.response().setStatusCode(404).end();
+                Util.err404(req);
         }
     }
 

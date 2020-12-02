@@ -66,7 +66,7 @@ public final class CollectorServiceCallbacks extends AbstractVerticle {
                      }
                      else {
                          log.error("could not reach snapshot server", ar.cause());
-                         req.response().setStatusCode(500).end();
+                         Util.err500(req);
                      }
                  });
     }

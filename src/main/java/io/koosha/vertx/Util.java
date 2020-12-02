@@ -3,8 +3,11 @@ package io.koosha.vertx;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.file.OpenOptions;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,6 +19,7 @@ import java.util.stream.Collectors;
 
 public final class Util {
 
+    private static final Logger log = LoggerFactory.getLogger(Util.class);
 
     private Util() {
         throw new UnsupportedOperationException("can not instantiate utility class");
@@ -77,6 +81,41 @@ public final class Util {
             vertx.deployVerticle(verticle.getName());
 
         return vertx;
+    }
+
+
+    public static boolean sleepL(final long millis) {
+        try {
+            Thread.sleep(millis);
+            return true;
+        }
+        catch (final InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        }
+    }
+
+    @SuppressWarnings("UnusedReturnValue")
+    public static boolean sleepS(final int seconds) {
+        for (int i = seconds; i > 0; i--) {
+            if (!sleepL(1000))
+                return false;
+            log.info("{}...", i);
+        }
+        return true;
+    }
+
+
+    public static void err500(final HttpServerRequest req) {
+        req.response().setStatusCode(500).end();
+    }
+
+    public static void err404(final HttpServerRequest req) {
+        req.response().setStatusCode(404).end();
+    }
+
+    public static void err400(final HttpServerRequest req) {
+        req.response().setStatusCode(400).end();
     }
 
 }

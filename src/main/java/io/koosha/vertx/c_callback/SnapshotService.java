@@ -19,7 +19,7 @@ public final class SnapshotService extends AbstractVerticle {
              .requestHandler(req -> {
                  if (!req.method().equals(HttpMethod.POST) ||
                      !Util.HEADER__CONTENT_TYPE__JSON.equals(req.getHeader(Util.HEADER__CONTENT_TYPE))) {
-                     req.response().setStatusCode(400).end();
+                     Util.err400(req);
                  }
                  else {
                      req.bodyHandler(buffer -> {

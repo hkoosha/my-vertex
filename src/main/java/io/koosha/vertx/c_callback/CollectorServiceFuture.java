@@ -51,7 +51,7 @@ public final class CollectorServiceFuture extends AbstractVerticle {
                 .end(data.encode()))
             .onFailure(event -> {
                 log.error("failed", event.getCause());
-                req.response().setStatusCode(500).end();
+                Util.err500(req);
             });
 
     }

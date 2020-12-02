@@ -125,7 +125,7 @@ public final class Jukebox extends AbstractVerticle {
                 break;
 
             default:
-                req.response().setStatusCode(404).end();
+                Util.err404(req);
         }
     }
 
@@ -136,19 +136,19 @@ public final class Jukebox extends AbstractVerticle {
         vertx.fileSystem().exists(file.toString())
              .onFailure(event -> {
                  log.error("error checking if exists, file={}", file, event.getCause());
-                 req.response().setStatusCode(500).end();
+                 Util.err500(req);
              })
              .onSuccess(exists -> {
                  if (!exists) {
                      log.warn("requested file does not exist: {}", file);
-                     req.response().setStatusCode(404).end();
+                     Util.err404(req);
                      return;
                  }
 
                  vertx.fileSystem().open(file.toString(), Util.forRead(), ar -> {
                      if (ar.failed()) {
                          log.error("error opening, file={}", file, ar.cause());
-                         req.response().setStatusCode(500).end();
+                         Util.err500(req);
                          return;
                      }
 
